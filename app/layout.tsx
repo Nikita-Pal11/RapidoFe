@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "./context/AuthContext";
+import { SocketProvider } from "./context/socketcontext";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -15,11 +16,17 @@ export const metadata: Metadata = {
     "Book a bike, auto, or cab ride in seconds. Rapido connects you with verified captains for fast, affordable rides across India.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en" className={`${inter.variable} light`}>
       <body className="min-h-screen flex flex-col">
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <SocketProvider>{children}</SocketProvider>
+        </AuthProvider>
       </body>
     </html>
   );
