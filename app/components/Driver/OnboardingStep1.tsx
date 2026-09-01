@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { Logo } from "../Logo";
 import {
   BikeIcon, CarIcon, VanIcon, TaxiIcon,
   ArrowRightIcon, AlertIcon,
@@ -52,6 +53,7 @@ export default function OnboardingStep1({ setstep, setvehicleid }: OnboardingSte
         setError(data?.detail ?? "Something went wrong. Please try again.");
         return;
       }
+      console.log(data);
       setvehicleid(data.id);
       setstep(1);
     } catch {
@@ -71,19 +73,7 @@ export default function OnboardingStep1({ setstep, setvehicleid }: OnboardingSte
         className="flex items-center gap-3 px-5 py-4"
         style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
       >
-        <div
-          className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: "#FFD700" }}
-        >
-          <BikeIcon />
-        </div>
-        <div className="leading-none">
-          <span className="text-white font-black text-xl tracking-tight">raahi</span>
-          <span
-            className="block text-[10px] font-semibold uppercase tracking-widest"
-            style={{ color: "rgba(255,255,255,0.35)" }}
-          >captain onboarding</span>
-        </div>
+        <Logo size="md" role="captain onboarding" />
       </header>
 
       {/* ── Progress bar ────────────────────────────────── */}

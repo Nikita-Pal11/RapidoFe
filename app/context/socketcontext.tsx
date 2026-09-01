@@ -161,6 +161,7 @@ return (
       connectDriverSocket,
       disconnectDriverSocket,
       incomingRideRequest,
+      setIncomingRideRequest,
       clearIncomingRide,
       sendDriverLocation,
     }}

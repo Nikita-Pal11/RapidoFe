@@ -10,6 +10,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       role,
       isAuthenticated: !!accessToken,
+      token: accessToken,
     });
   } catch (error) {
     console.error("Error fetching me endpoint:", error);

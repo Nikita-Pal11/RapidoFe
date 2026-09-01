@@ -2,8 +2,8 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import OnboardingStep1 from "../../components/Driver/OnboardingStep1";
+import { Logo } from "../../components/Logo";
 import {
-  BikeIcon,
   PhoneIcon,
   ArrowRightIcon,
   CheckIcon,
@@ -29,33 +29,23 @@ export default function OnBoarding() {
       setError("Please select your gender");
       return;
     }
-    if (!phone.trim()) {
-      setError("Please enter your phone number");
-      return;
-    }
-
     setLoading(true);
     setError("");
 
     try {
-      const resp = await fetch("/api/users/driver/", {
+      const res = await fetch("/api/driver/profile/", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ gender, phone, vehicle: vehicleid }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ gender, phone_number: phone, vehicle_id: vehicleid }),
       });
-      const data = await resp.json();
-      if (!resp.ok) {
-        setError(data?.detail || "Failed to save profile. Please try again.");
-        console.log("Error", data);
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data?.detail ?? "Failed to save profile");
         return;
       }
-      console.log("data---->", data);
       router.push("/");
-    } catch (err) {
-      setError("Network error. Please check your connection.");
-      console.log("error", err);
+    } catch {
+      setError("Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -71,19 +61,7 @@ export default function OnBoarding() {
         <div className="min-h-screen flex flex-col justify-between">
           {/* ── Header ──────────────────────────────────────── */}
           <header className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#0a0a0f]/80 backdrop-blur-md">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-[#FFD700] text-[#0a0a0f] flex items-center justify-center font-black flex-shrink-0">
-                <BikeIcon />
-              </div>
-              <div className="leading-none">
-                <span className="text-white font-black text-xl tracking-tight block">
-                  raahi
-                </span>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-white/35 block">
-                  captain onboarding
-                </span>
-              </div>
-            </div>
+            <Logo size="md" role="captain onboarding" />
 
             <button
               onClick={() => setstep(0)}
