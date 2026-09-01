@@ -12,20 +12,20 @@ import {
 // Load Stripe promise using config publishable key
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ||
-    "pk_test_51U9VxqRqiMQ5RcL6LSLTmn2BTfiVBu0lK1QQMS9c1hPE9QEDqI1LuGc0to3s0lFH35OWPVcueLSeViGVHukYs9SY00yyXCPJD3"
+    "pk_test_51U9VxqRqiMQ5RcL6LSLTmn2BTfiVBu0lK1QQMS9c1hPE9QEDqI1LuGc0to3s0lFH35OWPVcueLSeViGVHukYs9SY00yyXCPJD3",
 );
 
 // 1. The actual Payment Form Component
-const CheckoutForm = ({ 
-  ride_id, 
-  amount, 
-  driver_id, 
-  driver_name 
-}: { 
-  ride_id: number; 
-  amount: number; 
-  driver_id?: number; 
-  driver_name?: string; 
+const CheckoutForm = ({
+  ride_id,
+  amount,
+  driver_id,
+  driver_name,
+}: {
+  ride_id: number;
+  amount: number;
+  driver_id?: number;
+  driver_name?: string;
 }) => {
   const stripe = useStripe();
   const elements = useElements();
@@ -48,7 +48,8 @@ const CheckoutForm = ({
     }
 
     // Pass driver details in return_url params so success page can display rating form
-    const returnUrl = `${window.location.origin}/payment-success?ride_id=${ride_id}` +
+    const returnUrl =
+      `${window.location.origin}/payment-success?ride_id=${ride_id}` +
       `&driver_id=${driver_id || ""}` +
       `&driver_name=${encodeURIComponent(driver_name || "Driver")}`;
 
@@ -84,14 +85,14 @@ const CheckoutForm = ({
 };
 
 // 2. The Main Container Component
-const CheckoutPage = ({ 
-  ride_id, 
-  driver_id, 
-  driver_name 
-}: { 
-  ride_id: number; 
-  driver_id?: number; 
-  driver_name?: string; 
+const CheckoutPage = ({
+  ride_id,
+  driver_id,
+  driver_name,
+}: {
+  ride_id: number;
+  driver_id?: number;
+  driver_name?: string;
 }) => {
   const [clientSecret, setClientSecret] = useState("");
   const [amount, setAmount] = useState<number>(0);
@@ -131,7 +132,9 @@ const CheckoutPage = ({
     return (
       <div className="flex flex-col items-center justify-center p-8 gap-3">
         <div className="w-8 h-8 border-3 border-[#FFD700]/20 border-t-[#FFD700] rounded-full animate-spin" />
-        <p className="text-white/60 text-xs font-semibold">Initializing Stripe checkout...</p>
+        <p className="text-white/60 text-xs font-semibold">
+          Initializing Stripe checkout...
+        </p>
       </div>
     );
   }
@@ -148,9 +151,11 @@ const CheckoutPage = ({
     <div className="bg-[#111118]/90 backdrop-blur-2xl border border-white/10 p-6 rounded-[28px] max-w-md w-full shadow-2xl animate-[cardPop_0.4s_ease_both]">
       <div className="mb-6 text-center">
         <h2 className="text-xl font-black text-white">Ride Payment</h2>
-        <p className="text-xs text-white/50 mt-1">Please enter your payment details to complete the ride</p>
+        <p className="text-xs text-white/50 mt-1">
+          Please enter your payment details to complete the ride
+        </p>
       </div>
-      
+
       {clientSecret && (
         <Elements
           stripe={stripePromise}
@@ -170,11 +175,11 @@ const CheckoutPage = ({
             },
           }}
         >
-          <CheckoutForm 
-            ride_id={ride_id} 
-            amount={amount} 
-            driver_id={driver_id} 
-            driver_name={driver_name} 
+          <CheckoutForm
+            ride_id={ride_id}
+            amount={amount}
+            driver_id={driver_id}
+            driver_name={driver_name}
           />
         </Elements>
       )}
