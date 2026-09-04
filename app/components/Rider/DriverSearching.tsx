@@ -28,39 +28,39 @@ export default function DriverSearching({ ride_id }: { ride_id: number }) {
   }
 
   return (
-    <div className="flex flex-col gap-3 p-1 animate-[fadeSlideUp_0.3s_ease_both]">
-      {/* Driver Search Header Row */}
-      <div className="flex items-center gap-3 bg-white/[0.03] border border-white/5 p-3 rounded-xl">
-        <div className="relative flex items-center justify-center w-12 h-12 rounded-xl bg-[#FFD700]/10 border border-[#FFD700]/20 flex-shrink-0">
-          <div className="absolute inset-0 rounded-xl border border-[#FFD700]/20 animate-ping opacity-25" />
-          <CyclelogoLoader />
-        </div>
+    <div className="flex flex-col items-center justify-center p-5 bg-white/[0.03] border border-white/10 rounded-2xl gap-4 text-center animate-[fadeSlideUp_0.3s_ease_both]">
+      {/* Animated Cycle Icon Badge */}
+      <div className="relative flex items-center justify-center p-3.5 rounded-2xl bg-[#FFD700]/10 border border-[#FFD700]/20">
+        <div className="absolute inset-0 rounded-2xl border border-[#FFD700]/30 animate-ping opacity-30" />
+        <CyclelogoLoader size={50} />
+      </div>
 
-        <div className="flex-1 min-w-0 flex flex-col justify-center">
-          <h3 className="text-sm font-black tracking-tight text-white m-0 truncate">
-            Finding your driver...
-          </h3>
-          <p className="text-[11px] text-white/50 font-medium m-0 truncate">
-            Contacting nearby drivers for pickup
-          </p>
-        </div>
-
-        <Button
-          variant="outline"
-          size="sm"
-          isPending={isCancelling}
-          isDisabled={isCancelling}
-          className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl font-bold text-xs px-3 py-2 cursor-pointer flex-shrink-0"
-          onPress={cancleride}
-        >
-          {isCancelling ? "Cancelling..." : "Cancel"}
-        </Button>
+      {/* Header & Subtext */}
+      <div className="flex flex-col items-center gap-1">
+        <h3 className="text-base font-extrabold tracking-tight text-white m-0">
+          Finding your driver...
+        </h3>
+        <p className="text-xs text-white/50 font-medium m-0">
+          Contacting nearby drivers for pickup
+        </p>
       </div>
 
       {/* Animated Linear Progress Bar */}
-      <div className="w-full px-1">
+      <div className="w-full px-2">
         <Loader />
       </div>
+
+      {/* Cancel Button */}
+      <Button
+        variant="outline"
+        size="sm"
+        isPending={isCancelling}
+        isDisabled={isCancelling}
+        className="w-full max-w-xs bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl font-bold text-xs py-2.5 cursor-pointer transition-all active:scale-[0.98]"
+        onPress={cancleride}
+      >
+        {isCancelling ? "Cancelling..." : "Cancel Ride"}
+      </Button>
     </div>
   );
 }
