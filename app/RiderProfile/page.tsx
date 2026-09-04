@@ -192,7 +192,7 @@ useEffect(() => {
         <div className="flex items-center gap-3">
           <Button
             size="sm"
-            variant="flat"
+            variant="ghost"
             onPress={() => router.push("/")}
             className="bg-white/5 hover:bg-white/10 text-white/80 hover:text-white border border-white/10 rounded-xl px-3 py-1 text-xs font-semibold cursor-pointer"
           >
@@ -380,7 +380,7 @@ useEffect(() => {
                     <Button
                       size="sm"
                       onPress={handleSaveProfile}
-                      disabled={saving}
+                      isDisabled={saving}
                       className="bg-[#FFD700] hover:bg-[#FFA500] text-black font-extrabold rounded-xl text-xs px-4 cursor-pointer shadow-md"
                     >
                       {saving ? "Saving…" : "Save Changes"}

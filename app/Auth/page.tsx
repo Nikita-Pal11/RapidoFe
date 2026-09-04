@@ -1,6 +1,6 @@
 "use client";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Image from "next/image";
 import { Button, Chip, Spinner, InputOTP } from "@heroui/react";
 import { Logo } from "../components/Logo";
@@ -51,7 +51,7 @@ const RefreshIcon = () => (
   </svg>
 );
 
-function Auth() {
+function AuthContent() {
   const { fetchUser } = useAuth();
   const searchparams = useSearchParams();
   const role = searchparams.get("role");
@@ -421,4 +421,16 @@ function Auth() {
   );
 }
 
-export default Auth;
+export default function AuthPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">
+          <div className="w-8 h-8 border-3 border-[#FFD700]/20 border-t-[#FFD700] rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <AuthContent />
+    </Suspense>
+  );
+}
