@@ -1,37 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    const { ride_id } = await request.json();
     const cookieStore = await cookies();
     const access_token = cookieStore.get("access_token")?.value;
+    if (!access_token) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
 
+    const body = await req.json();
     const resp = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/payments/create-payment-intent/`,
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/users/rider/`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${access_token}`,
         },
-        body: JSON.stringify({ ride_id }),
+        body: JSON.stringify(body),
       },
     );
-    const data = await resp.json();
 
+    const data = await resp.json();
     if (!resp.ok) {
       return NextResponse.json(data, { status: resp.status });
     }
-
-    return NextResponse.json({
-      clientSecret: data.clientSecret,
-      payment: data.payment,
-    });
+    return NextResponse.json(data);
   } catch (error) {
-    console.error("Internal Error in payment API proxy:", error);
+    console.log("Error in /api/users/rider POST:", error);
     return NextResponse.json(
-      { error: `Internal Server Error: ${error}` },
+      { message: "internal server error" },
       { status: 500 },
     );
   }

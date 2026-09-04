@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, Button } from "@heroui/react";
 import dynamic from "next/dynamic";
 import { useSocket } from "@/app/context/socketcontext";
@@ -9,26 +9,36 @@ import { DriverTopNav } from "./DriverTopNav";
 import { DriverSideMenu } from "./DriverSideMenu";
 import { RideRequestSheet } from "./RideRequestSheet";
 import { StatCard } from "./StatCard";
+import { WeeklyEarningsGraph } from "./WeeklyEarningsGraph";
 import { BikeIcon, RupeeIcon, StarIcon } from "./icons";
+import { calculateDistanceKm } from "@/app/helper/distance";
 
 const Map = dynamic(() => import("@/app/components/Location/Map"), {
   ssr: false,
 });
 
-// Trip history data
-const MOCK_TRIPS = [
-  { id: 1, from: "Koramangala 5th Block", to: "HSR Layout Sector 1", fare: 82, km: 4.2, time: "09:14 AM" },
-  { id: 2, from: "Indiranagar 12th Main", to: "MG Road Metro Station", fare: 55, km: 2.8, time: "10:33 AM" },
-  { id: 3, from: "Whitefield Gate", to: "Marathahalli Bridge", fare: 110, km: 5.7, time: "12:05 PM" },
-  { id: 4, from: "BTM 2nd Stage", to: "Electronic City Phase 1", fare: 145, km: 7.4, time: "02:20 PM" },
-];
+interface TripItem {
+  id: number;
+  pickup_location?: string;
+  drop_location?: string;
+  pickup_lat?: number;
+  pickup_long?: number;
+  drop_lat?: number;
+  drop_long?: number;
+  fare?: number | string;
+  status?: string;
+  created_at?: string;
+  [key: string]: any;
+}
 
 type Tab = "map" | "trips" | "earnings";
 
 export default function DriverDashboard() {
   // ── UI state ────────────────────────────────────────────────────────────────
   const [isOnline, setIsOnline] = useState(false);
-  const [profile, setprofile] = useState({});
+  const [profile, setProfile] = useState<any>({});
+  const [trips, setTrips] = useState<TripItem[]>([]);
+  const [loadingTrips, setLoadingTrips] = useState(false);
   const [showRideReq, setShowRideReq] = useState(false);
   const [rideAccepted, setRideAccepted] = useState(false);
   const [rideTimer, setRideTimer] = useState(15);
@@ -89,6 +99,36 @@ export default function DriverDashboard() {
     }
   }, [activeRideId, connectRideSocket, disconnectRideSocket]);
 
+  // Fetch driver trips and profile
+  const fetchDashboardData = useCallback(async () => {
+    try {
+      setLoadingTrips(true);
+      const [profileRes, tripsRes] = await Promise.all([
+        fetch("/api/users/profile/"),
+        fetch("/api/ride/alltrips"),
+      ]);
+
+      if (profileRes.ok) {
+        const pData = await profileRes.json();
+        setProfile(pData);
+        if (pData.status === "online") setIsOnline(true);
+      }
+
+      if (tripsRes.ok) {
+        const tData = await tripsRes.json();
+        setTrips(Array.isArray(tData) ? tData : []);
+      }
+    } catch (err) {
+      console.error("Error fetching dashboard data:", err);
+    } finally {
+      setLoadingTrips(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
+
   // Clear ride when payment is completed or ride is cancelled
   useEffect(() => {
     if (rideEvent?.status === "completed") {
@@ -96,6 +136,7 @@ export default function DriverDashboard() {
       setRideAccepted(false);
       setShowRideReq(false);
       clearIncomingRide();
+      fetchDashboardData();
     }
     if (rideEvent?.status === "canceled") {
       if (rideAccepted) {
@@ -105,8 +146,9 @@ export default function DriverDashboard() {
       setRideAccepted(false);
       setShowRideReq(false);
       clearIncomingRide();
+      fetchDashboardData();
     }
-  }, [rideEvent, rideAccepted, clearIncomingRide]);
+  }, [rideEvent, rideAccepted, clearIncomingRide, fetchDashboardData]);
 
   // Countdown — auto-dismiss on timeout
   useEffect(() => {
@@ -124,10 +166,10 @@ export default function DriverDashboard() {
   // Stream GPS via LocationConsumer while on a ride
   useEffect(() => {
     if (!currlocation || !isOnline || !activeRideId || !profile) return;
-    const driverId = (profile as any).id;
-    if (!driverId) return; // Wait until profile.id is fetched and valid
+    const driverId = profile?.id;
+    if (!driverId) return;
     const [lat, lng] = currlocation;
-    const vehicleType = (profile as any).vehicle?.vehicle_type || "bike";
+    const vehicleType = profile?.vehicle?.vehicle_type || "bike";
     sendDriverLocation(activeRideId, lat, lng, driverId, vehicleType);
   }, [currlocation, isOnline, activeRideId, profile]);
 
@@ -145,7 +187,7 @@ export default function DriverDashboard() {
           body: JSON.stringify({
             curr_latitude: currlocation![0],
             curr_longitude: currlocation![1],
-            vehicletype: (profile as any)?.vehicle?.vehicle_type || "bike",
+            vehicletype: profile?.vehicle?.vehicle_type || "bike",
           }),
         });
         if (!resp.ok) {
@@ -211,25 +253,7 @@ export default function DriverDashboard() {
     }
   }
 
-  useEffect(() => {
-    async function getprofile() {
-      const resp = await fetch("api/users/profile");
-      if (!resp.ok) {
-        const errData = await resp.json().catch(() => ({}));
-        console.error("Error fetching profile:", resp.status, errData);
-        return;
-      }
-      const data = await resp.json();
-      console.log("data", data);
-      if (data.status === "online") setIsOnline(true);
-      setprofile(data);
-    }
-    getprofile();
-  }, []);
-
-  const todayEarnings = MOCK_TRIPS.reduce((s, t) => s + t.fare, 0);
-
-  //active ride
+  // Active ride check on load
   useEffect(() => {
     async function getRideDetails() {
       try {
@@ -252,6 +276,50 @@ export default function DriverDashboard() {
     }
     getRideDetails();
   }, []);
+
+  // ── Calculated Real Metrics ─────────────────────────────────────────────────
+  const today = new Date();
+  const todayTrips = trips.filter((t) => {
+    if (!t.created_at) return false;
+    const d = new Date(t.created_at);
+    return (
+      d.getDate() === today.getDate() &&
+      d.getMonth() === today.getMonth() &&
+      d.getFullYear() === today.getFullYear()
+    );
+  });
+
+  const todayCompletedTrips = todayTrips.filter((t) => t.status === "completed");
+  const totalCompletedTrips = trips.filter((t) => t.status === "completed").length;
+
+  const todayEarnings = todayCompletedTrips.reduce((s, t) => s + (Number(t.fare) || 0), 0);
+  const todayDistance = todayCompletedTrips.reduce((s, t) => {
+    return s + calculateDistanceKm(t.pickup_lat, t.pickup_long, t.drop_lat, t.drop_long);
+  }, 0);
+
+  const driverRating = profile?.rating ? Number(profile.rating).toFixed(1) : "5.0";
+
+  // Weekly performance graph from real data
+  const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const weeklyData = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(today.getDate() - (6 - i));
+    const dayName = daysOfWeek[d.getDay()];
+    const isToday = i === 6;
+
+    const dayCompletedTrips = trips.filter((t) => {
+      if (!t.created_at || t.status !== "completed") return false;
+      const tDate = new Date(t.created_at);
+      return (
+        tDate.getDate() === d.getDate() &&
+        tDate.getMonth() === d.getMonth() &&
+        tDate.getFullYear() === d.getFullYear()
+      );
+    });
+
+    const dayEarnings = dayCompletedTrips.reduce((s, t) => s + (Number(t.fare) || 0), 0);
+    return { d: dayName, v: dayEarnings, isToday };
+  });
 
   return (
     <div className="flex flex-col min-h-screen font-[Inter,system-ui,sans-serif] bg-[#0a0a0f] text-white overflow-x-hidden">
@@ -284,20 +352,21 @@ export default function DriverDashboard() {
         <StatCard
           label="Earnings"
           value={`₹${todayEarnings}`}
-          sub="+12% today"
+          sub={todayTrips.length > 0 ? `${todayCompletedTrips.length} completed` : "Today"}
           icon={<RupeeIcon />}
           accent="#FFD700"
         />
         <StatCard
           label="Trips"
-          value="4"
-          sub="2 avg"
+          value={String(todayCompletedTrips.length)}
+          sub={`${totalCompletedTrips} total`}
           icon={<BikeIcon size={20} />}
           accent="#a78bfa"
         />
         <StatCard
           label="Rating"
-          value="4.8"
+          value={driverRating}
+          sub="Driver Score"
           icon={<StarIcon filled />}
           accent="#f59e0b"
         />
@@ -330,39 +399,97 @@ export default function DriverDashboard() {
       {/* ── Tab Content: Trips ── */}
       {activeTab === "trips" && (
         <div className="px-4 mt-4 flex flex-col gap-3 animate-[fadeSlideUp_0.4s_ease_both]">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/35 m-0 mb-1">
-            Trip History Log
-          </p>
-          {MOCK_TRIPS.map((trip, i) => (
-            <Card
-              key={trip.id}
-              className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 transition-all hover:bg-white/[0.04] shadow-md flex flex-col gap-3"
-              style={{ animationDelay: `${i * 0.05}s` }}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black bg-[#FFD700] text-black shadow-md shadow-[#FFD700]/10">
-                    #{trip.id}
-                  </div>
-                  <div>
-                    <p className="text-xs font-extrabold text-white m-0">{trip.time}</p>
-                    <p className="text-[10px] font-semibold text-white/40 m-0">{trip.km} km distance</p>
-                  </div>
-                </div>
-                <span className="text-base font-black text-[#FFD700]">
-                  ₹{trip.fare}
-                </span>
-              </div>
+          <div className="flex items-center justify-between px-0.5">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-white/35 m-0 mb-1">
+              Trip History Log
+            </p>
+            <span className="text-[10px] font-bold text-[#FFD700]">
+              {trips.length} Total Rides
+            </span>
+          </div>
 
-              {/* Route addresses */}
-              <div className="flex flex-col gap-2 relative pl-4 border-l border-white/10 ml-4 py-0.5">
-                <div className="absolute -left-1 top-0.5 w-2 h-2 rounded-full bg-emerald-500" />
-                <div className="absolute -left-1 bottom-0.5 w-2 h-2 rounded-full bg-amber-500" />
-                <p className="text-xs font-semibold text-white/70 truncate m-0">{trip.from}</p>
-                <p className="text-xs font-semibold text-white/70 truncate m-0">{trip.to}</p>
+          {trips.length === 0 ? (
+            <Card className="bg-white/[0.02] border border-white/5 rounded-2xl p-8 text-center flex flex-col items-center justify-center">
+              <div className="w-12 h-12 rounded-2xl bg-[#FFD700]/10 flex items-center justify-center text-2xl mb-3">
+                🏍️
               </div>
+              <p className="text-sm font-extrabold text-white m-0">No Trips Recorded Yet</p>
+              <p className="text-xs text-white/40 mt-1 mb-0 max-w-xs">
+                Go online to accept incoming ride requests and see your completed trips here.
+              </p>
             </Card>
-          ))}
+          ) : (
+            trips.map((trip, i) => {
+              const distanceKm = calculateDistanceKm(
+                trip.pickup_lat,
+                trip.pickup_long,
+                trip.drop_lat,
+                trip.drop_long
+              );
+              const formattedTime = trip.created_at
+                ? new Date(trip.created_at).toLocaleDateString("en-IN", {
+                    day: "numeric",
+                    month: "short",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: true,
+                  })
+                : "Recent";
+
+              const isCompleted = trip.status === "completed";
+              const isCanceled = trip.status === "canceled";
+
+              return (
+                <Card
+                  key={trip.id}
+                  className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 transition-all hover:bg-white/[0.04] shadow-md flex flex-col gap-3"
+                  style={{ animationDelay: `${i * 0.05}s` }}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black bg-[#FFD700] text-black shadow-md shadow-[#FFD700]/10">
+                        #{trip.id}
+                      </div>
+                      <div>
+                        <p className="text-xs font-extrabold text-white m-0">{formattedTime}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-[10px] font-semibold text-white/40 m-0">
+                            {distanceKm > 0 ? `${distanceKm} km` : "Trip"}
+                          </span>
+                          <span
+                            className={`text-[9px] font-extrabold px-2 py-0.5 rounded-full capitalize ${
+                              isCompleted
+                                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                : isCanceled
+                                ? "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                                : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                            }`}
+                          >
+                            {trip.status || "completed"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <span className="text-base font-black text-[#FFD700]">
+                      ₹{trip.fare || 0}
+                    </span>
+                  </div>
+
+                  {/* Route addresses */}
+                  <div className="flex flex-col gap-2 relative pl-4 border-l border-white/10 ml-4 py-0.5">
+                    <div className="absolute -left-1 top-0.5 w-2 h-2 rounded-full bg-emerald-500" />
+                    <div className="absolute -left-1 bottom-0.5 w-2 h-2 rounded-full bg-amber-500" />
+                    <p className="text-xs font-semibold text-white/70 truncate m-0">
+                      {trip.pickup_location || "Pickup Location"}
+                    </p>
+                    <p className="text-xs font-semibold text-white/70 truncate m-0">
+                      {trip.drop_location || "Dropoff Location"}
+                    </p>
+                  </div>
+                </Card>
+              );
+            })
+          )}
         </div>
       )}
 
@@ -379,9 +506,9 @@ export default function DriverDashboard() {
             </p>
             <div className="mt-5 pt-4 grid grid-cols-3 gap-3 border-t border-yellow-500/10">
               {[
-                { label: "Trips Done", val: "4" },
-                { label: "Distance", val: "20.1 km" },
-                { label: "Bonus Pay", val: "₹50" },
+                { label: "Trips Done", val: String(todayCompletedTrips.length) },
+                { label: "Distance", val: `${todayDistance.toFixed(1)} km` },
+                { label: "Total Fares", val: `₹${todayEarnings}` },
               ].map(({ label, val }) => (
                 <div key={label} className="flex flex-col gap-0.5">
                   <p className="text-[10px] font-semibold text-white/40 m-0">{label}</p>
@@ -391,43 +518,8 @@ export default function DriverDashboard() {
             </div>
           </Card>
 
-          {/* Weekly bar chart visualization */}
-          <div className="flex flex-col gap-3">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-white/35 m-0">
-              Weekly Performance Graph
-            </p>
-            <Card className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 shadow-md">
-              <div className="flex items-end justify-between gap-2.5 h-28 pt-2">
-                {[
-                  { d: "Mon", v: 380 },
-                  { d: "Tue", v: 520 },
-                  { d: "Wed", v: 290 },
-                  { d: "Thu", v: 640 },
-                  { d: "Fri", v: 480 },
-                  { d: "Sat", v: 710 },
-                  { d: "Sun", v: todayEarnings },
-                ].map(({ d, v }) => {
-                  const pct = (v / 710) * 100;
-                  const isToday = d === "Sun";
-                  return (
-                    <div key={d} className="flex flex-col items-center gap-1.5 flex-1 h-full justify-end">
-                      <div
-                        className="w-full rounded-t-md transition-all duration-500 min-h-[4px]"
-                        style={{
-                          height: `${pct}%`,
-                          background: isToday ? "#FFD700" : "rgba(255,215,0,0.15)",
-                          boxShadow: isToday ? "0 0 12px rgba(255,215,0,0.25)" : "none",
-                        }}
-                      />
-                      <p className={`text-[10px] font-extrabold m-0 ${isToday ? "text-[#FFD700]" : "text-white/30"}`}>
-                        {d}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
-            </Card>
-          </div>
+          {/* Weekly bar chart visualization component */}
+          <WeeklyEarningsGraph data={weeklyData} />
         </div>
       )}
 

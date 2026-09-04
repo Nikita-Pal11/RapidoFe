@@ -4,13 +4,16 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { email, otp, role } = body;
-    const resp = await fetch("http://127.0.0.1:8000/auth/verify-otp/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    const resp = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/verify-otp/`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, otp, role }),
       },
-      body: JSON.stringify({ email, otp, role }),
-    });
+    );
     const data = await resp.json();
     if (!resp.ok) {
       return NextResponse.json(data, { status: resp.status });

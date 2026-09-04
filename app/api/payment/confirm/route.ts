@@ -6,9 +6,9 @@ export async function POST(request: NextRequest) {
     const { ride_id } = await request.json();
     const cookieStore = await cookies();
     const access_token = cookieStore.get("access_token")?.value;
-    
+
     const resp = await fetch(
-      "http://127.0.0.1:8000/payments/confirm-payment/",
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/payments/confirm-payment/`,
       {
         method: "POST",
         headers: {

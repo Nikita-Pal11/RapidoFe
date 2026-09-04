@@ -8,14 +8,17 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
 
     // Proxy rating POST to Django backend "/users/Rating/"
-    const resp = await fetch("http://127.0.0.1:8000/users/Rating/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${access_token}`,
+    const resp = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/users/Rating/`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${access_token}`,
+        },
+        body: JSON.stringify(body),
       },
-      body: JSON.stringify(body),
-    });
+    );
 
     const data = await resp.json();
     if (!resp.ok) {
@@ -26,7 +29,7 @@ export async function POST(req: NextRequest) {
     console.error("Error in Next.js rating API proxy:", error);
     return NextResponse.json(
       { message: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
