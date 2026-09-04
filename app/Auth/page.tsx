@@ -231,7 +231,7 @@ function AuthContent() {
                 Email address
               </label>
               <div
-                className={`flex items-center gap-3 rounded-2xl border bg-white/5 px-4 py-0 transition-all duration-200
+                className={`flex items-center gap-3 rounded-2xl border px-4 py-0 transition-all duration-200
                   ${
                     error
                       ? "border-rose-500/50 ring-2 ring-rose-500/10"

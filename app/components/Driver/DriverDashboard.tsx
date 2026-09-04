@@ -45,8 +45,8 @@ export default function DriverDashboard() {
   const [showMenu, setShowMenu] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>("map");
   const [activeRideId, setActiveRideId] = useState<number | null>(null);
-  const [currlocation, setCurrlocation] = useState<[number, number] | undefined>(undefined);
   const [showCancellationModal, setShowCancellationModal] = useState(false);
+  const [rideAlertMessage, setRideAlertMessage] = useState<string | null>(null);
   
   // ── Hooks ───────────────────────────────────────────────────────────────────
   const rawLocation = CurrentLocation();
@@ -213,18 +213,29 @@ export default function DriverDashboard() {
   // ── Handlers ────────────────────────────────────────────────────────────────
   async function handleRideAction(action: "accepted" | "reject") {
     if (!activeRideId) return;
-    setRideAccepted(action === "accepted");
     try {
       const resp = await fetch("/api/ride/RideReq", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ride_id: activeRideId, action }),
       });
+      const data = await resp.json().catch(() => ({}));
       if (!resp.ok) {
-        console.error("RideReq failed", await resp.json());
+        console.error("RideReq failed", data);
+        setRideAlertMessage(
+          data?.message || "This ride has already been accepted by another driver."
+        );
+        setRideAccepted(false);
+        setShowRideReq(false);
+        setRideTimer(15);
+        setActiveRideId(null);
+        clearIncomingRide();
         return;
       }
-      if (action === "accepted") connectLocationSocket(activeRideId);
+      if (action === "accepted") {
+        setRideAccepted(true);
+        connectLocationSocket(activeRideId);
+      }
     } catch (err) {
       console.error("RideReq error", err);
     } finally {
@@ -332,6 +343,21 @@ export default function DriverDashboard() {
 
       {/* ── Side Menu ── */}
       {showMenu && <DriverSideMenu onClose={() => setShowMenu(false)} />}
+
+      {/* ── Ride Already Taken Alert Banner ── */}
+      {rideAlertMessage && (
+        <div className="mx-4 mt-3 animate-[fadeSlideDown_0.4s_ease_both]">
+          <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 p-3.5 rounded-2xl flex items-center justify-between text-xs font-bold shadow-lg">
+            <span>⚠️ {rideAlertMessage}</span>
+            <button
+              onClick={() => setRideAlertMessage(null)}
+              className="text-white/60 hover:text-white font-black text-sm ml-2 cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── Offline Banner Card ── */}
       {!isOnline && (

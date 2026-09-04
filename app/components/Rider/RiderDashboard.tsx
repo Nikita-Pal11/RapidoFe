@@ -214,9 +214,13 @@ export default function RiderDashboard() {
 
         {ridestatus === "searching" ? (
           <DriverSearching ride_id={(currentride as any)?.id} />
-        ) : ["accepted", "driver_arrived", "started", "canceled"].includes(
-            ridestatus,
-          ) ? (
+        ) : [
+            "accepted",
+            "driver_arrived",
+            "started",
+            "canceled",
+            "no_drivers",
+          ].includes(ridestatus) ? (
           <RideAccepted
             rideinfo={currentride}
             ridestatus={ridestatus}
@@ -227,14 +231,18 @@ export default function RiderDashboard() {
             }}
           />
         ) : ridestatus === "payment_pending" ? (
-          <div className="flex justify-center py-2 animate-[cardPop_0.4s_ease_both]">
-            <CheckoutPage
-              ride_id={(currentride as any).id}
-              driver_id={(currentride as any).driver?.id}
-              driver_name={
-                (currentride as any).driver?.user?.username || "Driver"
-              }
-            />
+          <div className="flex flex-col items-center justify-center p-6 text-center gap-3 animate-[cardPop_0.4s_ease_both]">
+            <div className="w-12 h-12 rounded-full bg-[#FFD700]/10 text-[#FFD700] border border-[#FFD700]/20 flex items-center justify-center text-2xl font-black shadow-lg">
+              💳
+            </div>
+            <div>
+              <h2 className="text-lg font-black text-white m-0">
+                Payment Pending
+              </h2>
+              <p className="text-xs text-white/50 mt-1 mb-0">
+                Please complete the checkout modal on your screen to finish payment.
+              </p>
+            </div>
           </div>
         ) : ridestatus === "completed" ? (
           <div className="flex flex-col items-center justify-center p-6 text-center gap-4 animate-[cardPop_0.4s_ease_both]">
@@ -314,6 +322,21 @@ export default function RiderDashboard() {
           </>
         )}
       </div>
+
+      {/* Full-Screen Payment Modal */}
+      {ridestatus === "payment_pending" && (
+        <div className="fixed inset-0 z-50 bg-[#0a0a0f]/90 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto animate-[fadeIn_0.3s_ease]">
+          <div className="w-full max-w-md my-auto flex justify-center">
+            <CheckoutPage
+              ride_id={(currentride as any).id}
+              driver_id={(currentride as any).driver?.id}
+              driver_name={
+                (currentride as any).driver?.user?.username || "Driver"
+              }
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

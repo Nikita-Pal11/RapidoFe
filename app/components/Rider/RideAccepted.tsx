@@ -33,6 +33,56 @@ export default function RideAccepted({ rideinfo, ridestatus, onReset }: RideAcce
     }
   }
 
+  // ── No Drivers Screen ────────────────────────────────────────────────────────
+  if (ridestatus === "no_drivers") {
+    return (
+      <div className="flex flex-col items-center justify-center p-6 gap-5 text-center animate-[fadeSlideUp_0.4s_ease_both]">
+        <div className="relative flex items-center justify-center w-20 h-20 rounded-full bg-amber-500/10 border border-amber-500/20 shadow-2xl shadow-amber-500/10">
+          <div className="absolute inset-0 rounded-full border border-amber-500/20 animate-ping opacity-25" />
+          <svg
+            className="w-9 h-9 text-amber-400"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <path d="M16 16s-1.5-2-4-2-4 2-4 2" />
+            <line x1="9" y1="9" x2="9.01" y2="9" />
+            <line x1="15" y1="9" x2="15.01" y2="9" />
+          </svg>
+        </div>
+
+        <div className="flex flex-col gap-1.5 max-w-sm">
+          <h3 className="text-xl font-black tracking-tight text-white m-0">
+            No Drivers Found
+          </h3>
+          <p className="text-xs text-white/50 font-medium leading-relaxed m-0">
+            All nearby drivers are currently busy or offline. Try selecting a different vehicle category or try searching again.
+          </p>
+        </div>
+
+        <div className="w-full flex flex-col gap-2 mt-1">
+          <Button
+            size="lg"
+            className="w-full font-extrabold text-sm bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-[#0a0a0f] border-0 rounded-2xl py-4 transition-all active:scale-[0.99] cursor-pointer shadow-xl shadow-[#FFD700]/20"
+            onPress={() => {
+              if (onReset) {
+                onReset();
+              } else {
+                window.location.reload();
+              }
+            }}
+          >
+            🔄 Try Booking Again / Change Ride
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   // ── Cancelled Screen ────────────────────────────────────────────────────────
   if (ridestatus === "canceled") {
     return (
