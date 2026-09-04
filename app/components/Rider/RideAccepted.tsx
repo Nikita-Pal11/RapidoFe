@@ -150,104 +150,102 @@ export default function RideAccepted({ rideinfo, ridestatus, onReset }: RideAcce
   const driverName = `${firstName} ${lastName}`.trim();
 
   return (
-    <div className="flex flex-col gap-4 text-white animate-[fadeSlideUp_0.4s_ease_both]">
-      {/* Dynamic Status Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+    <div className="flex flex-col gap-2.5 text-white animate-[fadeSlideUp_0.3s_ease_both] pb-1">
+      {/* Top Header: Live Status + High Contrast Plate Badge */}
+      <div className="flex items-center justify-between pb-1 border-b border-white/5">
+        <div className="flex items-center gap-1.5">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
           </span>
-          <p className="text-xs font-bold text-emerald-400 uppercase tracking-wider m-0">
+          <span className="text-[11px] font-extrabold text-emerald-400 uppercase tracking-wider">
             {ridestatus === "driver_arrived"
               ? "Driver Reached"
               : ridestatus === "started"
                 ? "Ride Started"
-                : "Driver is arriving"}
-          </p>
-        </div>
-        <Chip
-          size="sm"
-          variant="tertiary"
-          color="warning"
-          className="font-extrabold text-[10px] uppercase"
-        >
-          Ride Confirmed
-        </Chip>
-      </div>
-
-      {/* Driver Info Card */}
-      <Card className="bg-white/[0.03] border-white/5 p-4 rounded-2xl shadow-xl flex flex-row items-center gap-4">
-        {/* Avatar */}
-        <div className="w-14 h-14 rounded-2xl bg-[#FFD700] text-[#0a0a0f] font-black text-2xl flex items-center justify-center shadow-lg shadow-[#FFD700]/10 flex-shrink-0">
-          {firstName.charAt(0).toUpperCase()}
-        </div>
-
-        <div className="flex-1 flex flex-col min-w-0 gap-0.5">
-          <span className="text-base font-black truncate">{driverName}</span>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-0.5 bg-[#FFD700]/10 px-1.5 py-0.5 rounded text-[10px] font-bold text-[#FFD700]">
-              <StarIcon size={10} filled />
-              <span>4.9</span>
-            </div>
-            <span className="text-[11px] font-medium text-white/45 capitalize">
-              {driver.gender || "Driver"}
-            </span>
-          </div>
-        </div>
-
-        {/* Action Button: Call */}
-        <Button
-          isIconOnly
-          variant="danger-soft"
-          className="rounded-xl w-11 h-11 border border-warning/10 cursor-pointer"
-          aria-label="Call Driver"
-        >
-          <PhoneIcon size={16} />
-        </Button>
-      </Card>
-
-      {/* Vehicle Info Row */}
-      <div className="flex items-center justify-between bg-white/[0.02] border border-white/5 rounded-2xl p-4">
-        <div className="flex flex-col gap-0.5">
-          <span className="text-xs text-white/35 font-semibold uppercase tracking-wider">
-            Vehicle
-          </span>
-          <span className="text-sm font-extrabold capitalize text-white">
-            {vehicle?.color || "White"} • {vehicle?.vehicle_type || "Ride"}
+                : "Driver Arriving"}
           </span>
         </div>
-        {/* High contrast license plate badge */}
-        <div className="bg-[#FFD700] text-[#0a0a0f] font-black px-3.5 py-1.5 rounded-xl text-sm border-2 border-black/10 tracking-widest shadow-lg shadow-[#FFD700]/10 font-mono">
+        <div className="bg-[#FFD700] text-[#0a0a0f] font-black px-2.5 py-0.5 rounded-lg text-xs font-mono tracking-wider shadow">
           {vehicle?.vehicle_number || "NO PLATE"}
         </div>
       </div>
 
-      {/* OTP Display Card */}
-      {(ridestatus === "accepted" || ridestatus === "driver_arrived") && (
-        <Card className="bg-gradient-to-r from-amber-500/10 to-amber-600/5 border border-amber-500/20 p-4 rounded-2xl text-center flex flex-col gap-2">
-          <span className="text-xs text-amber-300/60 font-semibold tracking-wider uppercase">
-            Share this OTP to start the ride
-          </span>
-          <div className="text-3xl font-black tracking-widest text-[#FFD700] font-mono leading-none py-1">
-            {ride.otp || "----"}
+      {/* Driver & Vehicle Info Row */}
+      <div className="flex items-center justify-between bg-white/[0.03] border border-white/5 p-2.5 rounded-xl gap-3">
+        {/* Avatar */}
+        <div className="w-10 h-10 rounded-xl bg-[#FFD700] text-[#0a0a0f] font-black text-lg flex items-center justify-center flex-shrink-0 shadow">
+          {firstName.charAt(0).toUpperCase()}
+        </div>
+
+        {/* Driver & Vehicle Details */}
+        <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-black text-white truncate">{driverName}</span>
+            <div className="flex items-center gap-0.5 bg-[#FFD700]/10 px-1 py-0.2 rounded text-[9px] font-bold text-[#FFD700]">
+              <StarIcon size={9} filled />
+              <span>4.9</span>
+            </div>
           </div>
-        </Card>
+          <span className="text-[11px] text-white/50 font-semibold truncate capitalize">
+            {vehicle?.color || "White"} • {vehicle?.vehicle_type || "Ride"}
+          </span>
+        </div>
+
+        {/* Call Button */}
+        <Button
+          isIconOnly
+          size="sm"
+          variant="danger-soft"
+          className="rounded-xl w-9 h-9 border border-amber-500/20 cursor-pointer flex-shrink-0"
+          aria-label="Call Driver"
+        >
+          <PhoneIcon size={14} />
+        </Button>
+      </div>
+
+      {/* Pickup & Dropoff Address Preview */}
+      {(ride?.pickup_location || ride?.drop_location) && (
+        <div className="flex flex-col gap-1 bg-white/[0.02] border border-white/5 p-2 rounded-xl text-xs">
+          {ride?.pickup_location && (
+            <div className="flex items-center gap-2 truncate text-white/70">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
+              <span className="truncate">{ride.pickup_location}</span>
+            </div>
+          )}
+          {ride?.drop_location && (
+            <div className="flex items-center gap-2 truncate text-white/70">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0" />
+              <span className="truncate">{ride.drop_location}</span>
+            </div>
+          )}
+        </div>
       )}
 
-      {/* Cancel Ride Action */}
-      {ridestatus !== "started" && (
-        <Button
-          variant="outline"
-          size="md"
-          isPending={isCancelling}
-          isDisabled={isCancelling}
-          onPress={cancleride}
-          className="w-full mt-1 bg-red-500/[0.08] hover:bg-red-500/15 text-red-400 border border-red-500/20 hover:border-red-500/40 rounded-xl font-bold text-xs transition-all active:scale-[0.99] py-3 cursor-pointer"
-        >
-          {isCancelling ? "Cancelling Ride..." : "Cancel Ride"}
-        </Button>
-      )}
+      {/* OTP Badge & Compact Cancel Action Row */}
+      <div className="flex items-center justify-between gap-2 pt-0.5">
+        {(ridestatus === "accepted" || ridestatus === "driver_arrived") && (
+          <div className="flex-1 flex items-center justify-between bg-gradient-to-r from-amber-500/10 to-amber-600/5 border border-amber-500/20 px-3 py-1.5 rounded-xl">
+            <span className="text-[10px] font-bold text-amber-300/70 uppercase">OTP</span>
+            <span className="text-xl font-black tracking-widest text-[#FFD700] font-mono leading-none">
+              {ride.otp || "----"}
+            </span>
+          </div>
+        )}
+
+        {ridestatus !== "started" && (
+          <Button
+            variant="outline"
+            size="sm"
+            isPending={isCancelling}
+            isDisabled={isCancelling}
+            onPress={cancleride}
+            className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 hover:border-red-500/40 rounded-xl font-bold text-xs px-3 py-2 cursor-pointer flex-shrink-0"
+          >
+            {isCancelling ? "Cancelling..." : "Cancel"}
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
