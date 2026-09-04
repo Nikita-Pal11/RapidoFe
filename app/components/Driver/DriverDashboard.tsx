@@ -36,6 +36,7 @@ type Tab = "map" | "trips" | "earnings";
 export default function DriverDashboard() {
   // ── UI state ────────────────────────────────────────────────────────────────
   const [isOnline, setIsOnline] = useState(false);
+  const [currlocation, setCurrlocation] = useState<[number, number] | undefined>(undefined);
   const [profile, setProfile] = useState<any>({});
   const [trips, setTrips] = useState<TripItem[]>([]);
   const [loadingTrips, setLoadingTrips] = useState(false);
