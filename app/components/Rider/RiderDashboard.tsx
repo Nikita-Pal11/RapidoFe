@@ -49,7 +49,7 @@ export default function RiderDashboard() {
         const [plng, plat] = pickupLatLong;
         const [dlng, dlat] = dropoffLatLong;
         const resp = await fetch(
-          `http://localhost:3000/api/users/driver/nearestdriver?pickup_long=${plng}&pickup_lat=${plat}&dropoff_long=${dlng}&dropoff_lat=${dlat}`,
+          `/api/users/driver/nearestdriver?pickup_long=${plng}&pickup_lat=${plat}&dropoff_long=${dlng}&dropoff_lat=${dlat}`,
           { method: "GET", headers: { "Content-Type": "application/json" } },
         );
         if (!resp.ok) return;
