@@ -213,7 +213,14 @@ export default function RiderDashboard() {
         </button>
 
         {ridestatus === "searching" ? (
-          <DriverSearching ride_id={(currentride as any)?.id} />
+          <DriverSearching
+            ride_id={(currentride as any)?.id}
+            onCancel={() => {
+              setridestatus("");
+              setactivetrip(false);
+              setcurrentride({});
+            }}
+          />
         ) : [
             "accepted",
             "driver_arrived",

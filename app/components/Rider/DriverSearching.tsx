@@ -4,21 +4,30 @@ import { Button } from "@heroui/react";
 import CyclelogoLoader from "../loader/CyclelogoLoader";
 import Loader from "../loader/Loader";
 
-export default function DriverSearching({ ride_id }: { ride_id: number }) {
+interface DriverSearchingProps {
+  ride_id?: number;
+  onCancel?: () => void;
+}
+
+export default function DriverSearching({ ride_id, onCancel }: DriverSearchingProps) {
   const [isCancelling, setIsCancelling] = useState(false);
 
   async function cancleride() {
-    if (!ride_id) return;
     setIsCancelling(true);
     try {
-      const resp = await fetch("/api/ride/ridebooking", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ride_id }),
-      });
-      const data = await resp.json();
-      if (!resp.ok) {
-        console.error("Error in deleting ride:", data);
+      if (ride_id) {
+        const resp = await fetch("/api/ride/ridebooking", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ride_id }),
+        });
+        const data = await resp.json();
+        if (!resp.ok) {
+          console.error("Error in deleting ride:", data);
+        }
+      }
+      if (onCancel) {
+        onCancel();
       }
     } catch (err) {
       console.error("Error cancelling ride:", err);
