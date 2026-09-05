@@ -129,15 +129,30 @@ export function SocketProvider({children}:{children:ReactNode}){
         driver_id: driverId,
         vehicle_type: vehicleType,
       });
-      if (
-        !locationWsRef.current ||
-        locationWsRef.current.readyState !== WebSocket.OPEN
-      ) {
+
+      const ws = locationWsRef.current;
+
+      if (!ws || ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
         connectLocationSocket(rideId);
-        setTimeout(() => locationWsRef.current?.send(payload), 500);
         return;
       }
-      locationWsRef.current.send(payload);
+
+      if (ws.readyState === WebSocket.CONNECTING) {
+        ws.addEventListener(
+          "open",
+          () => {
+            if (ws.readyState === WebSocket.OPEN) {
+              ws.send(payload);
+            }
+          },
+          { once: true }
+        );
+        return;
+      }
+
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(payload);
+      }
     },
     [connectLocationSocket],
   );

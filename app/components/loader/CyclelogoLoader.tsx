@@ -1,15 +1,11 @@
 import React from "react";
 import styled from "styled-components";
 
-interface CyclelogoLoaderProps {
-  size?: number;
-}
-
-const CyclelogoLoader = ({ size = 60 }: CyclelogoLoaderProps) => {
+const CyclelogoLoader = () => {
   return (
-    <StyledWrapper $size={size}>
+    <StyledWrapper>
       <div>
-        <svg className="loader" viewBox="0 0 48 30">
+        <svg className="loader" viewBox="0 0 48 30" width="48px" height="30px">
           <g
             fill="none"
             stroke="currentColor"
@@ -97,10 +93,10 @@ const CyclelogoLoader = ({ size = 60 }: CyclelogoLoaderProps) => {
   );
 };
 
-const StyledWrapper = styled.div<{ $size?: number }>`
+const StyledWrapper = styled.div`
   .loader {
     display: block;
-    width: ${(props) => props.$size ?? 60}px;
+    width: 150px;
     height: auto;
   }
 
